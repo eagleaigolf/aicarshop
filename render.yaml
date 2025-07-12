@@ -1,0 +1,12 @@
+yaml
+services:
+  - type: web
+    name: car-shopping-ai
+    env: python
+    buildCommand: "pip install -r requirements.txt && playwright install chromium"
+    startCommand: "python app.py"
+    envVars:
+      - key: PORT
+        value: 10000
+      - key: PLAYWRIGHT_BROWSERS_PATH
+        value: /opt/render/project/.cache/ms-playwright
