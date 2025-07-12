@@ -1,0 +1,885 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Car Shopping AI Agent</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: #333;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 40px;
+            color: white;
+        }
+
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .header p {
+            font-size: 1.2em;
+            opacity: 0.9;
+        }
+
+        .search-container {
+            background: white;
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            margin-bottom: 30px;
+        }
+
+        .search-form {
+            display: grid;
+            gap: 20px;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+
+        @media (max-width: 768px) {
+            .form-row {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        label {
+            font-weight: 600;
+            margin-bottom: 8px;
+            color: #555;
+        }
+
+        input, select, textarea {
+            padding: 12px 16px;
+            border: 2px solid #e1e5e9;
+            border-radius: 12px;
+            font-size: 16px;
+            transition: all 0.3s ease;
+        }
+
+        input:focus, select:focus, textarea:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .ai-input {
+            min-height: 100px;
+            resize: vertical;
+            font-family: inherit;
+        }
+
+        .search-button {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 16px 32px;
+            border-radius: 12px;
+            font-size: 18px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-top: 20px;
+        }
+
+        .search-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(102, 126, 234, 0.3);
+        }
+
+        .search-button:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .results-container {
+            background: white;
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            display: none;
+        }
+
+        .results-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+            padding-bottom: 20px;
+            border-bottom: 2px solid #f0f2f5;
+        }
+
+        .results-title {
+            font-size: 1.8em;
+            font-weight: 700;
+            color: #333;
+        }
+
+        .results-count {
+            background: #667eea;
+            color: white;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-weight: 600;
+        }
+
+        .ai-analysis {
+            background: linear-gradient(135deg, #f8f9ff 0%, #e8f2ff 100%);
+            border-radius: 16px;
+            padding: 20px;
+            margin-bottom: 30px;
+            border-left: 4px solid #667eea;
+        }
+
+        .ai-analysis h3 {
+            color: #667eea;
+            margin-bottom: 15px;
+            font-size: 1.3em;
+        }
+
+        .vehicle-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+            gap: 20px;
+        }
+
+        .vehicle-card {
+            background: white;
+            border: 2px solid #f0f2f5;
+            border-radius: 16px;
+            padding: 20px;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+
+        .vehicle-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            border-color: #667eea;
+        }
+
+        .vehicle-title {
+            font-size: 1.3em;
+            font-weight: 700;
+            color: #333;
+            margin-bottom: 10px;
+        }
+
+        .vehicle-price {
+            font-size: 1.5em;
+            font-weight: 800;
+            color: #2d5a87;
+            margin-bottom: 15px;
+        }
+
+        .vehicle-details {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+
+        .detail-item {
+            font-size: 0.9em;
+            color: #666;
+        }
+
+        .detail-label {
+            font-weight: 600;
+            color: #333;
+        }
+
+        .vehicle-source {
+            display: inline-block;
+            background: #f8f9fa;
+            color: #495057;
+            padding: 6px 12px;
+            border-radius: 8px;
+            font-size: 0.8em;
+            font-weight: 600;
+            margin-top: 10px;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: #666;
+        }
+
+        .loading-spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #667eea;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 20px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .negotiation-tips {
+            background: #fff3cd;
+            border: 1px solid #ffeaa7;
+            border-radius: 12px;
+            padding: 20px;
+            margin-top: 20px;
+        }
+
+        .negotiation-tips h4 {
+            color: #856404;
+            margin-bottom: 10px;
+        }
+
+        .negotiation-tips ul {
+            color: #856404;
+            padding-left: 20px;
+        }
+
+        .price-badge {
+            display: inline-block;
+            padding: 4px 8px;
+            border-radius: 6px;
+            font-size: 0.8em;
+            font-weight: 600;
+            margin-left: 10px;
+        }
+
+        .price-good {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .price-average {
+            background: #fff3cd;
+            color: #856404;
+        }
+
+        .vehicle-actions {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 15px;
+        }
+
+        .api-status {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 10px 20px;
+            border-radius: 8px;
+            font-weight: 600;
+            z-index: 1000;
+        }
+
+        .api-connected {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+
+        .api-disconnected {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+
+        .setup-instructions {
+            background: #e8f4fd;
+            border: 1px solid #bee5eb;
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+
+        .setup-instructions h3 {
+            color: #0c5460;
+            margin-bottom: 15px;
+        }
+
+        .setup-instructions code {
+            background: #f8f9fa;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-family: monospace;
+        }
+
+        .setup-instructions pre {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 8px;
+            overflow-x: auto;
+            margin: 10px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="api-status" id="apiStatus">
+            Checking API connection...
+        </div>
+
+        <div class="header">
+            <h1>🚗 Car Shopping AI Agent</h1>
+            <p>Find the best deals across multiple platforms with AI-powered search</p>
+        </div>
+
+        <div class="setup-instructions" id="setupInstructions">
+            <h3>🔧 Setup Instructions</h3>
+            <p>To enable real AutoTrader browsing, follow these steps:</p>
+            <ol>
+                <li>Install required Python packages:
+                    <pre>pip install fastapi playwright uvicorn</pre>
+                </li>
+                <li>Install Playwright browsers:
+                    <pre>playwright install chromium</pre>
+                </li>
+                <li>Save the backend code as <code>car_automation.py</code></li>
+                <li>Run the backend server:
+                    <pre>python car_automation.py</pre>
+                </li>
+                <li>The API will be available at <code>http://localhost:8000</code></li>
+            </ol>
+            <p><strong>Note:</strong> When the backend is running, this interface will automatically switch to real browser automation!</p>
+        </div>
+
+        <div class="search-container">
+            <form class="search-form" id="searchForm">
+                <div class="form-group">
+                    <label for="aiQuery">Describe what you're looking for:</label>
+                    <textarea 
+                        id="aiQuery" 
+                        class="ai-input" 
+                        placeholder="e.g., 2022 Honda Accord Touring with adaptive cruise control, leather seats, under $28,000, within 50 miles of Chicago"
+                        required
+                    ></textarea>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="location">Location:</label>
+                        <input type="text" id="location" placeholder="Chicago, IL" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="radius">Search Radius:</label>
+                        <select id="radius" required>
+                            <option value="25">25 miles</option>
+                            <option value="50" selected>50 miles</option>
+                            <option value="100">100 miles</option>
+                            <option value="200">200 miles</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="minPrice">Min Price:</label>
+                        <input type="number" id="minPrice" placeholder="15000" min="0" step="1000">
+                    </div>
+                    <div class="form-group">
+                        <label for="maxPrice">Max Price:</label>
+                        <input type="number" id="maxPrice" placeholder="30000" min="0" step="1000">
+                    </div>
+                </div>
+
+                <button type="submit" class="search-button" id="searchButton">
+                    🔍 Search All Platforms
+                </button>
+            </form>
+        </div>
+
+        <div class="results-container" id="resultsContainer">
+            <div class="results-header">
+                <h2 class="results-title">Search Results</h2>
+                <div class="results-count" id="resultsCount">0 vehicles found</div>
+            </div>
+
+            <div class="ai-analysis" id="aiAnalysis">
+                <h3>🤖 AI Analysis</h3>
+                <div id="analysisContent">
+                    Analyzing market data and finding the best deals...
+                </div>
+            </div>
+
+            <div class="loading" id="loadingIndicator">
+                <div class="loading-spinner"></div>
+                <p>Searching across multiple platforms...</p>
+                <p><small>This may take 30-60 seconds</small></p>
+            </div>
+
+            <div class="vehicle-grid" id="vehicleGrid">
+                <!-- Vehicle cards will be populated here -->
+            </div>
+
+            <div class="negotiation-tips" id="negotiationTips" style="display: none;">
+                <h4>💡 Negotiation Tips</h4>
+                <ul id="tipsList">
+                    <!-- Tips will be populated here -->
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // API Configuration
+        const API_BASE_URL = 'http://localhost:8000';
+        
+        // AI Query Parser
+        function parseNaturalLanguageQuery(query) {
+            const words = query.toLowerCase().split(/\s+/);
+            
+            // Extract make and model
+            const carMakes = ['honda', 'toyota', 'ford', 'chevrolet', 'nissan', 'hyundai', 'kia', 'mazda', 'subaru', 'volkswagen', 'bmw', 'mercedes', 'audi', 'lexus', 'acura', 'infiniti'];
+            const hondaModels = ['accord', 'civic', 'crv', 'pilot', 'odyssey', 'ridgeline', 'passport', 'hrv', 'insight'];
+            const toyotaModels = ['camry', 'corolla', 'rav4', 'highlander', 'sienna', 'tacoma', 'tundra', 'prius', '4runner'];
+            
+            let make = '', model = '';
+            let year = null, maxPrice = null, minPrice = null;
+            
+            // Find make
+            for (const word of words) {
+                if (carMakes.includes(word)) {
+                    make = word;
+                    break;
+                }
+            }
+            
+            // Find model based on make
+            if (make === 'honda') {
+                for (const word of words) {
+                    if (hondaModels.includes(word)) {
+                        model = word;
+                        break;
+                    }
+                }
+            } else if (make === 'toyota') {
+                for (const word of words) {
+                    if (toyotaModels.includes(word)) {
+                        model = word;
+                        break;
+                    }
+                }
+            }
+            
+            // Extract year
+            const yearMatch = query.match(/\b(19|20)\d{2}\b/);
+            if (yearMatch) {
+                year = parseInt(yearMatch[0]);
+            }
+            
+            // Extract price
+            const priceMatch = query.match(/under\s*\$?([\d,]+)/i);
+            if (priceMatch) {
+                maxPrice = parseInt(priceMatch[1].replace(/,/g, ''));
+            }
+            
+            return {
+                make: make || 'honda',
+                model: model || 'accord',
+                year_min: year ? year - 1 : null,
+                year_max: year ? year + 1 : null,
+                price_max: maxPrice,
+                features: []
+            };
+        }
+        
+        // Real API call to backend
+        async function searchVehicles(searchParams) {
+            try {
+                const response = await fetch(`${API_BASE_URL}/search`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(searchParams)
+                });
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                
+                return await response.json();
+            } catch (error) {
+                console.error('API call failed:', error);
+                // Fallback to mock data if API fails
+                return getMockData();
+            }
+        }
+        
+        // Fallback mock data
+        function getMockData() {
+            const mockVehicles = [
+                {
+                    title: "2022 Honda Accord Touring",
+                    price: 27995,
+                    year: 2022,
+                    mileage: 24500,
+                    location: "Chicago, IL",
+                    dealer: "AutoTrader",
+                    features: ["Adaptive Cruise", "Leather Seats", "Navigation", "Sunroof"],
+                    url: "#",
+                    source: "AutoTrader"
+                },
+                {
+                    title: "2022 Honda Accord Touring",
+                    price: 29200,
+                    year: 2022,
+                    mileage: 18200,
+                    location: "Schaumburg, IL",
+                    dealer: "Cars.com",
+                    features: ["Adaptive Cruise", "Leather Seats", "Navigation", "Lane Keep Assist"],
+                    url: "#",
+                    source: "Cars.com"
+                },
+                {
+                    title: "2022 Honda Accord Touring",
+                    price: 26800,
+                    year: 2022,
+                    mileage: 31200,
+                    location: "Naperville, IL",
+                    dealer: "CarMax",
+                    features: ["Adaptive Cruise", "Leather Seats", "Navigation"],
+                    url: "#",
+                    source: "CarMax"
+                }
+            ];
+            
+            const avgPrice = mockVehicles.reduce((sum, v) => sum + v.price, 0) / mockVehicles.length;
+            const minPrice = Math.min(...mockVehicles.map(v => v.price));
+            const maxPrice = Math.max(...mockVehicles.map(v => v.price));
+            
+            return {
+                vehicles: mockVehicles,
+                analysis: {
+                    vehicle_count: mockVehicles.length,
+                    price_range: {
+                        min: minPrice,
+                        max: maxPrice,
+                        average: Math.round(avgPrice)
+                    },
+                    best_deal: {
+                        title: mockVehicles.find(v => v.price === minPrice).title,
+                        price: minPrice,
+                        source: mockVehicles.find(v => v.price === minPrice).source
+                    },
+                    market_insights: [
+                        `Found ${mockVehicles.length} vehicles matching your criteria`,
+                        `Price range: ${minPrice.toLocaleString()} - ${maxPrice.toLocaleString()}`,
+                        `Average price: ${Math.round(avgPrice).toLocaleString()}`,
+                        `Best deal: ${mockVehicles.find(v => v.price === minPrice).title} at ${minPrice.toLocaleString()}`
+                    ]
+                },
+                count: mockVehicles.length
+            };
+        }
+
+        const searchForm = document.getElementById('searchForm');
+        const resultsContainer = document.getElementById('resultsContainer');
+        const loadingIndicator = document.getElementById('loadingIndicator');
+        const vehicleGrid = document.getElementById('vehicleGrid');
+        const resultsCount = document.getElementById('resultsCount');
+        const aiAnalysis = document.getElementById('analysisContent');
+        const negotiationTips = document.getElementById('negotiationTips');
+        const tipsList = document.getElementById('tipsList');
+        const apiStatus = document.getElementById('apiStatus');
+        const setupInstructions = document.getElementById('setupInstructions');
+
+        // Check API connection on load
+        checkApiConnection();
+
+        async function checkApiConnection() {
+            try {
+                const response = await fetch(`${API_BASE_URL}/`, {
+                    method: 'GET',
+                    timeout: 5000
+                });
+                
+                if (response.ok) {
+                    apiStatus.textContent = '🟢 Backend Connected - Real Automation Active';
+                    apiStatus.className = 'api-status api-connected';
+                    setupInstructions.style.display = 'none';
+                } else {
+                    throw new Error('API not responding');
+                }
+            } catch (error) {
+                apiStatus.textContent = '🟡 Backend Offline - Using Demo Mode';
+                apiStatus.className = 'api-status api-disconnected';
+                setupInstructions.style.display = 'block';
+            }
+        }
+
+        searchForm.addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const query = document.getElementById('aiQuery').value;
+            const location = document.getElementById('location').value;
+            const radius = document.getElementById('radius').value;
+            const minPrice = document.getElementById('minPrice').value;
+            const maxPrice = document.getElementById('maxPrice').value;
+
+            // Show results container and loading
+            resultsContainer.style.display = 'block';
+            loadingIndicator.style.display = 'block';
+            vehicleGrid.style.display = 'none';
+            negotiationTips.style.display = 'none';
+
+            // Real search process
+            await simulateSearch(query, location, radius, minPrice, maxPrice);
+        });
+
+        async function simulateSearch(query, location, radius, minPrice, maxPrice) {
+            // Parse natural language query
+            const parsedQuery = parseNaturalLanguageQuery(query);
+            
+            // Build search parameters
+            const searchParams = {
+                make: parsedQuery.make,
+                model: parsedQuery.model,
+                year_min: parsedQuery.year_min,
+                year_max: parsedQuery.year_max,
+                price_min: minPrice ? parseInt(minPrice) : null,
+                price_max: maxPrice ? parseInt(maxPrice) : parsedQuery.price_max,
+                location: location,
+                radius: parseInt(radius),
+                features: parsedQuery.features
+            };
+            
+            // Show search progress
+            const phases = [
+                "Analyzing your requirements...",
+                "Initializing browser automation...",
+                "Navigating to AutoTrader...",
+                "Filling search form...",
+                "Executing search...",
+                "Extracting vehicle data...",
+                "Analyzing market data...",
+                "Generating insights..."
+            ];
+
+            for (let i = 0; i < phases.length; i++) {
+                await new Promise(resolve => setTimeout(resolve, 1000));
+                loadingIndicator.querySelector('p').textContent = phases[i];
+            }
+            
+            // Make real API call
+            const results = await searchVehicles(searchParams);
+            
+            // Display results
+            displayRealResults(results, query);
+        }
+        
+        function displayRealResults(data, query) {
+            // Hide loading
+            loadingIndicator.style.display = 'none';
+            
+            // Update results count
+            resultsCount.textContent = `${data.count} vehicles found`;
+            
+            // Display AI analysis
+            if (data.analysis) {
+                const analysis = data.analysis;
+                aiAnalysis.innerHTML = `
+                    <p><strong>🎯 Search Results:</strong> ${analysis.market_insights[0]}</p>
+                    <p><strong>💰 Price Analysis:</strong> ${analysis.market_insights[1]}</p>
+                    <p><strong>📊 Market Average:</strong> ${analysis.market_insights[2]}</p>
+                    <p><strong>🏆 Best Deal:</strong> ${analysis.market_insights[3]}</p>
+                    <p><strong>💡 Recommendation:</strong> The ${analysis.best_deal.title} from ${analysis.best_deal.source} offers the best value in the current market.</p>
+                `;
+            }
+            
+            // Display vehicles
+            vehicleGrid.innerHTML = '';
+            
+            if (data.vehicles && data.vehicles.length > 0) {
+                const avgPrice = data.analysis.price_range.average;
+                
+                data.vehicles.forEach(vehicle => {
+                    const priceCategory = getPriceCategory(vehicle.price, avgPrice);
+                    const card = createVehicleCard(vehicle, priceCategory);
+                    vehicleGrid.appendChild(card);
+                });
+                
+                // Show negotiation tips
+                showNegotiationTips(data.vehicles, data.analysis);
+            } else {
+                vehicleGrid.innerHTML = '<p>No vehicles found matching your criteria. Try adjusting your search parameters.</p>';
+            }
+            
+            // Show results
+            vehicleGrid.style.display = 'grid';
+            negotiationTips.style.display = 'block';
+        }
+        
+        function showNegotiationTips(vehicles, analysis) {
+            if (!analysis || !analysis.price_range) return;
+            
+            const { min, max, average } = analysis.price_range;
+            
+            const tips = [
+                `💰 Use the lowest price of ${min.toLocaleString()} as your negotiation starting point`,
+                `📊 The market average is ${average.toLocaleString()} - anything below this is a good deal`,
+                `🔍 Reference specific vehicles from different dealers to create competition`,
+                `📍 Consider vehicles with slightly higher mileage for better negotiation leverage`,
+                `💡 Factor in additional costs like taxes, fees, and financing when comparing total cost`,
+                `🤝 Be prepared to walk away - having multiple options gives you power`,
+                `📱 Use this data to show dealers you've done your research`
+            ];
+            
+            tipsList.innerHTML = tips.map(tip => `<li>${tip}</li>`).join('');
+        }
+
+        function displayResults(vehicles, query) {
+            // Hide loading
+            loadingIndicator.style.display = 'none';
+            
+            // Update results count
+            resultsCount.textContent = `${vehicles.length} vehicles found`;
+            
+            // Generate AI analysis
+            const avgPrice = vehicles.reduce((sum, v) => sum + v.price, 0) / vehicles.length;
+            const minPrice = Math.min(...vehicles.map(v => v.price));
+            const maxPrice = Math.max(...vehicles.map(v => v.price));
+            
+            aiAnalysis.innerHTML = `
+                <p><strong>Market Analysis:</strong> Found ${vehicles.length} vehicles matching your criteria.</p>
+                <p><strong>Price Range:</strong> $${minPrice.toLocaleString()} - $${maxPrice.toLocaleString()}</p>
+                <p><strong>Average Price:</strong> $${Math.round(avgPrice).toLocaleString()}</p>
+                <p><strong>Best Deal:</strong> The ${vehicles.find(v => v.price === minPrice).title} at $${minPrice.toLocaleString()} from ${vehicles.find(v => v.price === minPrice).dealer} appears to be the best value.</p>
+                <p><strong>Recommendation:</strong> Consider the vehicle with ${vehicles.find(v => v.price === minPrice).mileage.toLocaleString()} miles for the best price-to-value ratio.</p>
+            `;
+            
+            // Display vehicles
+            vehicleGrid.innerHTML = '';
+            vehicles.forEach(vehicle => {
+                const priceCategory = getPriceCategory(vehicle.price, avgPrice);
+                const card = createVehicleCard(vehicle, priceCategory);
+                vehicleGrid.appendChild(card);
+            });
+            
+            // Show negotiation tips
+            showNegotiationTips(vehicles);
+            
+            // Show results
+            vehicleGrid.style.display = 'grid';
+            negotiationTips.style.display = 'block';
+        }
+
+        function getPriceCategory(price, avgPrice) {
+            if (price < avgPrice * 0.95) return 'good';
+            if (price > avgPrice * 1.05) return 'high';
+            return 'average';
+        }
+
+        function createVehicleCard(vehicle, priceCategory) {
+            const card = document.createElement('div');
+            card.className = 'vehicle-card';
+            
+            const priceBadgeClass = `price-${priceCategory}`;
+            const priceBadgeText = priceCategory === 'good' ? 'Great Deal' : 
+                                  priceCategory === 'high' ? 'Above Average' : 'Fair Price';
+            
+            card.innerHTML = `
+                <div class="vehicle-title">${vehicle.title}</div>
+                <div class="vehicle-price">
+                    ${vehicle.price.toLocaleString()}
+                    <span class="price-badge ${priceBadgeClass}">${priceBadgeText}</span>
+                </div>
+                <div class="vehicle-details">
+                    <div class="detail-item">
+                        <span class="detail-label">Year:</span> ${vehicle.year}
+                    </div>
+                    <div class="detail-item">
+                        <span class="detail-label">Mileage:</span> ${vehicle.mileage.toLocaleString()}
+                    </div>
+                    <div class="detail-item">
+                        <span class="detail-label">Location:</span> ${vehicle.location}
+                    </div>
+                    <div class="detail-item">
+                        <span class="detail-label">Source:</span> ${vehicle.source}
+                    </div>
+                </div>
+                <div style="margin-bottom: 10px;">
+                    <strong>Features:</strong> ${vehicle.features.join(', ')}
+                </div>
+                <div class="vehicle-actions">
+                    <div class="vehicle-source">${vehicle.dealer}</div>
+                    ${vehicle.url !== '#' ? `<a href="${vehicle.url}" target="_blank" style="color: #667eea; text-decoration: none; font-weight: 600;">View Listing →</a>` : ''}
+                </div>
+            `;
+            
+            return card;
+        }:</span> ${vehicle.year}
+                    </div>
+                    <div class="detail-item">
+                        <span class="detail-label">Mileage:</span> ${vehicle.mileage.toLocaleString()}
+                    </div>
+                    <div class="detail-item">
+                        <span class="detail-label">Location:</span> ${vehicle.location}
+                    </div>
+                    <div class="detail-item">
+                        <span class="detail-label">Features:</span> ${vehicle.features.length}
+                    </div>
+                </div>
+                <div style="margin-bottom: 10px;">
+                    <strong>Features:</strong> ${vehicle.features.join(', ')}
+                </div>
+                <div class="vehicle-source">${vehicle.dealer}</div>
+            `;
+            
+            return card;
+        }
+
+        function showNegotiationTips(vehicles) {
+            const minPrice = Math.min(...vehicles.map(v => v.price));
+            const maxPrice = Math.max(...vehicles.map(v => v.price));
+            const avgPrice = vehicles.reduce((sum, v) => sum + v.price, 0) / vehicles.length;
+            
+            const tips = [
+                `Use the lowest price of $${minPrice.toLocaleString()} as your starting negotiation point`,
+                `The average market price is $${Math.round(avgPrice).toLocaleString()} - anything below this is a good deal`,
+                `Consider vehicles with higher mileage for better negotiation leverage`,
+                `Mention you've found similar vehicles at other dealerships for comparison`,
+                `Factor in additional costs like taxes, fees, and financing when comparing total cost`
+            ];
+            
+            tipsList.innerHTML = tips.map(tip => `<li>${tip}</li>`).join('');
+        }
+
+        // Pre-fill example data
+        document.getElementById('aiQuery').value = "2022 Honda Accord Touring with adaptive cruise control, leather seats, under $30,000";
+        document.getElementById('location').value = "Chicago, IL";
+    </script>
+</body>
+</html>
